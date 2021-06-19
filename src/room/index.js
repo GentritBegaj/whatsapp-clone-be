@@ -49,8 +49,6 @@ router.get("/:roomId", jwtAuthMiddleware, async (req, res, next) => {
       { path: "members" },
       { path: "messages", populate: { path: "messages._id" } },
     ]);
-    // console.log(room[0]);
-    //   if (room[0].members.includes(req.user._id))
     if (room) {
       res.status(200).send(room);
     } else {

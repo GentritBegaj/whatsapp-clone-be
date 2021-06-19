@@ -84,7 +84,6 @@ router.put(
   cloudMulter.single("profilePic"),
   async (req, res, next) => {
     if (req.body) {
-      console.log(req.body.username);
       const updates = Object.keys(req.body);
       updates.forEach((update) => (req.user[update] = req.body[update]));
     }
