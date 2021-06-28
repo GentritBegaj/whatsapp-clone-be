@@ -1,24 +1,24 @@
-import { Router } from "express";
-import { jwtAuthMiddleware } from "../auth/index.js";
-import { authenticate } from "../auth/tools.js";
-import UserModel from "./schema.js";
-import { v2 as cloudinary } from "cloudinary";
-import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { extname } from "path";
+import { Router } from 'express';
+import { jwtAuthMiddleware } from '../auth/index.js';
+import { authenticate } from '../auth/tools.js';
+import UserModel from './schema.js';
+import { v2 as cloudinary } from 'cloudinary';
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { extname } from 'path';
 
 const router = Router();
 
 const cloudStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: { folder: "Whatsapp Profile" },
+  params: { folder: 'Whatsapp Profile' },
 });
 
 const cloudMulter = multer({
   storage: cloudStorage,
 
   fileFilter: function (req, file, next) {
-    const acceptedExtensions = [".png", ".jpg", ".gif", ".bmp", ".jpeg"];
+    const acceptedExtensions = ['.png', '.jpg', '.gif', '.bmp', '.jpeg'];
     if (!acceptedExtensions.includes(extname(file.originalname))) {
       return next(
         new ErrorResponse(
@@ -30,7 +30,7 @@ const cloudMulter = multer({
   },
 });
 
-router.post("/register", async (req, res, next) => {
+router.post('/register', async (req, res, next) => {
   try {
     const newUserObject = new UserModel(req.body);
     const newUserAdded = await newUserObject.save();
@@ -41,19 +41,19 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
-router.post("/login", async (req, res, next) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await UserModel.checkCredentials(email, password);
     if (user) {
       const tokens = await authenticate(user);
       //   res.status(200).send(tokens);
-      res.cookie("accessToken", tokens.accessToken, {
-        sameSite: "lax",
+      res.cookie('accessToken', tokens.accessToken, {
+        sameSite: 'none',
         httpOnly: true,
       });
-      res.cookie("refreshToken", tokens.refreshToken, {
-        sameSite: "lax",
+      res.cookie('refreshToken', tokens.refreshToken, {
+        sameSite: 'none',
         httpOnly: true,
       });
       res.status(200).send({
@@ -61,7 +61,7 @@ router.post("/login", async (req, res, next) => {
         refreshToken: tokens.refreshToken,
       });
     } else {
-      res.status(401).send("Error while logging in");
+      res.status(401).send('Error while logging in');
     }
   } catch (error) {
     console.log(error);
@@ -69,7 +69,7 @@ router.post("/login", async (req, res, next) => {
   }
 });
 
-router.get("/me", jwtAuthMiddleware, async (req, res, next) => {
+router.get('/me', jwtAuthMiddleware, async (req, res, next) => {
   try {
     res.status(200).send(req.user);
   } catch (error) {
@@ -79,9 +79,9 @@ router.get("/me", jwtAuthMiddleware, async (req, res, next) => {
 });
 
 router.put(
-  "/me",
+  '/me',
   jwtAuthMiddleware,
-  cloudMulter.single("profilePic"),
+  cloudMulter.single('profilePic'),
   async (req, res, next) => {
     if (req.body) {
       const updates = Object.keys(req.body);
@@ -101,7 +101,7 @@ router.put(
   }
 );
 
-router.delete("/me", jwtAuthMiddleware, async (req, res, next) => {
+router.delete('/me', jwtAuthMiddleware, async (req, res, next) => {
   try {
     await req.user.deleteOne();
     res.status(204).send();
@@ -111,7 +111,7 @@ router.delete("/me", jwtAuthMiddleware, async (req, res, next) => {
   }
 });
 
-router.get("/:id", jwtAuthMiddleware, async (req, res, next) => {
+router.get('/:id', jwtAuthMiddleware, async (req, res, next) => {
   try {
     const user = await UserModel.findById(req.params.id);
     console.log(user.username);
