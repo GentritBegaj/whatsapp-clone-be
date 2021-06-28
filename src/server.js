@@ -19,12 +19,23 @@ const port = process.env.PORT || 3001;
 
 const app = express();
 const server = createServer(app);
+// app.use(
+//   cors({
+//     origin: '*',
+//     credentials: true,
+//   })
+// );
+
 app.use(
   cors({
-    origin: '*',
+    origin: function (origin, callback) {
+      return callback(null, true);
+    },
+    optionsSuccessStatus: 200,
     credentials: true,
   })
 );
+
 const io = new Server(server, {
   allowEIO3: true,
   cors: {
