@@ -1,54 +1,54 @@
-import express from "express";
-import { createServer } from "http";
-import { Server } from "socket.io";
-import cors from "cors";
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
 import {
   notFoundErrorHandler,
   badRequestErrorHandler,
   forbiddenErrorHandler,
   catchAllErrorHandler,
   unauthorizedErrorHandler,
-} from "./errorHandlers.js";
-import mongoose from "mongoose";
-import usersRoutes from "./users/index.js";
-import roomsRoutes from "./room/index.js";
-import cookieParser from "cookie-parser";
-import UserModel from "./users/schema.js";
+} from './errorHandlers.js';
+import mongoose from 'mongoose';
+import usersRoutes from './users/index.js';
+import roomsRoutes from './room/index.js';
+import cookieParser from 'cookie-parser';
+import UserModel from './users/schema.js';
 
 const port = process.env.PORT || 3001;
 
 const app = express();
 const server = createServer(app);
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 const io = new Server(server, {
   allowEIO3: true,
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET, POST, PUT, DELETE"],
+    origin: 'http://localhost:3000',
+    methods: ['GET, POST, PUT, DELETE'],
   },
 });
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/users", usersRoutes);
-app.use("/rooms", roomsRoutes);
+app.use('/users', usersRoutes);
+app.use('/rooms', roomsRoutes);
 
 let activeSockets = [];
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   console.log(`User with socket ID ${socket.id} just connected`);
 
-  socket.on("isOnline", ({ userID }) => {
+  socket.on('isOnline', ({ userID }) => {
     // console.log(userID);
     activeSockets = activeSockets.filter((u) => u.userId !== userID);
     activeSockets.push({ userId: userID, socketId: socket.id });
 
-    io.sockets.emit("getUsers", activeSockets);
+    io.sockets.emit('getUsers', activeSockets);
     // console.log(activeSockets);
   });
 
-  socket.on("sendMessage", (message) => {
+  socket.on('sendMessage', (message) => {
     // console.log(message);
     const receiverIds = message.receiverId.map((u) => u._id);
     receiverIds.forEach((user) => {
@@ -57,11 +57,11 @@ io.on("connection", (socket) => {
         .find((i) => i.userId === user);
       if (!userIntended) return null;
 
-      socket.to(userIntended.socketId).emit("newMessage", message);
+      socket.to(userIntended.socketId).emit('newMessage', message);
     });
   });
 
-  socket.on("disconnect", async () => {
+  socket.on('disconnect', async () => {
     console.log(`${socket.id} disconnected`);
     const user = activeSockets.find((u) => u.socketId === socket.id);
     const userDB = await UserModel.findById(user.userId);
@@ -73,8 +73,8 @@ io.on("connection", (socket) => {
       .filter((user) => user.socketId !== socket.id)
       .filter((u) => u.userId !== undefined);
     console.log(activeSockets);
-    io.sockets.emit("getUsers", activeSockets);
-    io.sockets.emit("lastSeen", { lastSeenTime, userLastSeenId });
+    io.sockets.emit('getUsers', activeSockets);
+    io.sockets.emit('lastSeen', { lastSeenTime, userLastSeenId });
   });
 });
 
@@ -85,7 +85,7 @@ app.use(unauthorizedErrorHandler);
 app.use(catchAllErrorHandler);
 
 mongoose
-  .connect(process.env.MONGO_CONNECTION, {
+  .connect(process.env.MONGOCONNECTION, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
