@@ -50,6 +50,7 @@ router.post('/login', async (req, res, next) => {
       //   res.status(200).send(tokens);
       res.cookie('accessToken', tokens.accessToken, {
         sameSite: 'none',
+        domain: 'http://localhost:3001',
         httpOnly: true,
       });
       res.cookie('refreshToken', tokens.refreshToken, {
