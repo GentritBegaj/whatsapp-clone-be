@@ -21,7 +21,7 @@ const app = express();
 const server = createServer(app);
 app.use(
   cors({
-    origin: 'https://heuristic-sinoussi-11a12f.netlify.app',
+    origin: '*',
     credentials: true,
   })
 );
